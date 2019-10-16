@@ -1,0 +1,167 @@
+{
+	"info": {
+		"_postman_id": "9d96f417-44df-4ab9-85c7-a9d6cc5c18fc",
+		"name": "em-api-collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "accounts",
+			"item": [
+				{
+					"name": "/accounts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": "http://localhost:8080/accounts",
+						"description": "Retrieve All Accounts"
+					},
+					"response": []
+				},
+				{
+					"name": "/accounts?pagination",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/accounts?page=1&size=3&sort=id,DESC",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"accounts"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "3"
+								},
+								{
+									"key": "sort",
+									"value": "id,DESC"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/accounts",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"title\" : \"Savings 3\",\n\t\"description\" : \"Savings Account 3\"\n}"
+						},
+						"url": "http://localhost:8080/accounts"
+					},
+					"response": []
+				},
+				{
+					"name": "/accounts/{account-id}",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"title\": \"Savings 1\",\n    \"description\": \"Savings Account 1\"\n}"
+						},
+						"url": "http://localhost:8080/accounts/1"
+					},
+					"response": []
+				},
+				{
+					"name": "/accounts/{account-id}",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": "http://localhost:8080/accounts/100"
+					},
+					"response": []
+				},
+				{
+					"name": "/accounts/{account-id}",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": "http://localhost:8080/accounts/100"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": "http://localhost:8080/health",
+				"description": "Health Endpoint"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "69286188-4db8-409c-a471-747267e29d05",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "a57d94e3-9fcc-4f29-ae4e-c5c4c7a6594f",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
