@@ -1,41 +1,37 @@
 package com.rrr.expense.manager.emapi.controllers;
 
 import com.rrr.expense.manager.emapi.models.Account;
-import com.rrr.expense.manager.emapi.repositories.AccountRepository;
+import com.rrr.expense.manager.emapi.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AccountController {
 
-    private AccountRepository accountRepository;
+    private AccountService accountService;
 
     @Autowired
-    public AccountController(AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
+    public AccountController(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     @GetMapping(value = "/accounts")
-    private ResponseEntity<Page<Account>> accounts(Pageable pageable) {
+    public ResponseEntity<Page<Account>> accounts(Pageable pageable) {
         return ResponseEntity
                 .ok()
-                .body(this.accountRepository.findAll(pageable));
+                .body(this.accountService.findAllAccounts(pageable));
     }
 
     @GetMapping(value = "/accounts/{accountId}")
     private ResponseEntity<Account> accountById(@PathVariable Long accountId) {
-        return this.accountRepository
-                .findById(accountId)
+        return this.accountService
+                .findAccountById(accountId)
                 .map(ResponseEntity.accepted()::body)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -44,27 +40,27 @@ public class AccountController {
     private ResponseEntity<Account> addAccount(@Valid @RequestBody Account account) {
         return ResponseEntity
                 .ok()
-                .body(this.accountRepository.save(account));
+                .body(this.accountService.addAccount(account));
     }
 
     @PutMapping(value = "/accounts/{accountId}")
     private ResponseEntity<Account> updateAccount(@RequestBody Account account, @PathVariable Long accountId) {
-        return this.accountRepository
-                .findById(accountId)
+        return this.accountService
+                .findAccountById(accountId)
                 .map(accountFound -> {
                     accountFound.mergeAccount(account);
                     return ResponseEntity
                             .accepted()
-                            .body(this.accountRepository.save(account));
+                            .body(this.accountService.addAccount(account));
                 }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping(value = "/accounts/{accountId}")
     private ResponseEntity deleteAccount(@PathVariable Long accountId) {
-        return this.accountRepository
-                .findById(accountId)
+        return this.accountService
+                .findAccountById(accountId)
                 .map(accountFound -> {
-                    this.accountRepository.delete(accountFound);
+                    this.accountService.deleteAccount(accountFound);
                     return ResponseEntity
                             .accepted()
                             .build();
