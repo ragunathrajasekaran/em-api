@@ -2,44 +2,33 @@ package com.rrr.expense.manager.emapi.controllers;
 
 import com.rrr.expense.manager.emapi.models.Account;
 import com.rrr.expense.manager.emapi.models.AccountBuilder;
-import com.rrr.expense.manager.emapi.repositories.AccountRepository;
 import com.rrr.expense.manager.emapi.services.AccountService;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.restassured.path.json.JsonPath;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.restassured.path.json.JsonPath.from;
-
 import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static org.assertj.core.api.Assertions.anyOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.springframework.data.domain.Sort.Direction.DESC;
@@ -71,7 +60,7 @@ class AccountControllerTest {
     }
 
     @Test
-    void testFetchAccountByID() {
+    void fetchAccountByIDWhenAccountIsAvailable() {
         final Account account = AccountBuilder.anAccount().withTitle("Credit Account").withId(1L).withDescription("Credit Card Account").build();
 
         Mockito.when(accountService.findAccountById(1L))
@@ -95,38 +84,75 @@ class AccountControllerTest {
     }
 
     @Test
-    void testFetchAllAccounts() {
-        final ArrayList<Object> accounts = Stream.of(
-                AccountBuilder.anAccount().withTitle("Credit Account").withId(1L).withDescription("Credit Card Account").build(),
-                AccountBuilder.anAccount().withTitle("Debit Account").withId(2L).withDescription("Debit Card Account").build(),
-                AccountBuilder.anAccount().withTitle("Saving Account").withId(3L).withDescription("My Savings Account").build()
-        ).collect(Collectors.toCollection(ArrayList::new));
+    void fetchAccountByIDWhenAccountIsNotAvailable() {
+        Mockito.when(accountService.findAccountById(1L))
+                .thenReturn(java.util.Optional.empty());
 
-
-        final PageRequest pageRequest = PageRequest.of(0, 3, DESC, "id");
-        PageImpl page = new PageImpl<>(accounts, pageRequest, accounts.size());
-        Mockito.when(accountService.findAllAccounts(any(Pageable.class)))
-                .thenReturn(page);
-
-        final JsonPath jsonPath = given()
-                .accept(JSON)
-                .queryParam("page", 0)
-                .queryParam("size", 3)
-                .queryParam("sort", "id,DESC")
+        given()
                 .when()
-                .get("/accounts")
+                .get("/accounts/1")
                 .then()
-                .statusCode(OK.value())
-                .contentType(JSON)
-                .log().body()
-                .extract()
-                .body()
-                .jsonPath();
+                .statusCode(NOT_FOUND.value())
+                .log().body();
+    }
 
+    @Nested
+    class AccountControllerFetchAllTest {
 
-        assertThat(jsonPath).as("Find All Accounts : Json Path").isNotNull();
-        assertThat(jsonPath.getList("content").size()).as("Find All Accounts : Accounts List Count").isEqualTo(3);
-        assertThat(jsonPath.getList("content.id")).as("Find All Accounts : Account Ids").contains(1,2,3);
-        assertThat(jsonPath.getString("content.title[2]")).as("Find All Accounts : Account Title").isEqualTo("Saving Account");
+        JsonPath jsonPath;
+
+        @BeforeEach
+        void beforeEach() {
+            final ArrayList<Object> accounts = Stream.of(
+                    AccountBuilder.anAccount().withTitle("Credit Account").withId(1L).withDescription("Credit Card Account").build(),
+                    AccountBuilder.anAccount().withTitle("Debit Account").withId(2L).withDescription("Debit Card Account").build(),
+                    AccountBuilder.anAccount().withTitle("Saving Account").withId(3L).withDescription("My Savings Account").build()
+            ).collect(Collectors.toCollection(ArrayList::new));
+
+            final PageRequest pageRequest = PageRequest.of(0, 3, DESC, "id");
+            PageImpl page = new PageImpl<>(accounts, pageRequest, accounts.size());
+            Mockito.when(accountService.findAllAccounts(any(Pageable.class)))
+                    .thenReturn(page);
+
+            jsonPath = given()
+                    .accept(JSON)
+                    .queryParam("page", 0)
+                    .queryParam("size", 3)
+                    .queryParam("sort", "id,DESC")
+                    .when()
+                    .get("/accounts")
+                    .then()
+                    .statusCode(OK.value())
+                    .contentType(JSON)
+                    .log().body()
+                    .extract()
+                    .body()
+                    .jsonPath();
+        }
+
+        @AfterEach
+        void afterEach() {
+            jsonPath = null;
+        }
+
+        @Test
+        void testJsonPath() {
+            assertThat(jsonPath).as("Find All Accounts : Json Path").isNotNull();
+        }
+
+        @Test
+        void testAccountList() {
+            assertThat(jsonPath.getList("content").size()).as("Find All Accounts : Accounts List Count").isEqualTo(3);
+            assertThat(jsonPath.getList("content.id")).as("Find All Accounts : Account Ids").contains(1,2,3);
+            assertThat(jsonPath.getString("content.title[2]")).as("Find All Accounts : Account Title").isEqualTo("Saving Account");
+        }
+
+        @Test
+        void testPageable() {
+            assertThat(jsonPath.getBoolean("pageable.sort.sorted")).as("Find All Accounts : Sorted").isEqualTo(true);
+            assertThat(jsonPath.getBoolean("pageable.sort.unsorted")).as("Find All Accounts : UnSorted").isEqualTo(false);
+            assertThat(jsonPath.getBoolean("pageable.sort.empty")).as("Find All Accounts : Empty").isEqualTo(false);
+            assertThat(jsonPath.getInt("pageable.offset")).as("Find All Accounts : Offset").isEqualTo(0);
+        }
     }
 }
