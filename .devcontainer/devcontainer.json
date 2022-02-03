@@ -1,11 +1,25 @@
 {
-	"name": "Java 8",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"args": {
-			"VARIANT": "buster",
-			"NODE_VERSION": "none"
-		}
-	},
-	"remoteUser": "vscode"
+  "name": "Java 8",
+  "settings": {
+    "spring-boot.ls.java.home": "/usr/local/openjdk-11"
+  },
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "buster",
+      "NODE_VERSION": "none"
+    }
+  },
+  "remoteUser": "vscode",
+  "extensions": [
+    "gabrielbb.vscode-lombok",
+    "vscjava.vscode-java-pack",
+    "pivotal.vscode-boot-dev-pack",
+    "naco-siren.gradle-language"
+  ],
+  "mounts": [
+    "source=em-api-container-volume,target=/home/vscode/.vscode-server/extensions,type=volume",
+    "source=em-api-container-volume-insiders,target=/home/vscode/.vscode-server-insiders/extensions,type=volume",
+    "source=${localEnv:HOME}/.m2,target=/home/vscode/.m2,type=bind,consistency=cached"
+  ]
 }
